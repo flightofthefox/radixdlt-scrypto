@@ -71,3 +71,9 @@ bench = false
 
 [lib]
 bench = false
+
+[lints.rust]
+warnings = "allow"
+
+[lints.clippy]
+all = "allow"

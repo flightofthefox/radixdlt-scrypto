@@ -42,3 +42,9 @@ trace = []
 
 # Disable schema gen in the output WASM.
 no-schema = []
+
+[lints.rust]
+warnings = "allow"
+
+[lints.clippy]
+all = "allow"

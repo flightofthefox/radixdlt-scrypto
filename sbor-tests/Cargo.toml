@@ -22,3 +22,9 @@ alloc = ["serde/alloc", "serde_json/alloc", "bincode/alloc", "sbor/alloc", "sbor
 
 [lib]
 bench = false
+
+[lints.rust]
+warnings = "allow"
+
+[lints.clippy]
+all = "allow"

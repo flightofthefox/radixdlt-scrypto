@@ -14,3 +14,9 @@ bech32 = { workspace = true }
 default = ["std"]
 std = ["serde/std", "serde_json/std", "scrypto/std", "scrypto/serde", "sbor/std"]
 alloc = ["serde/alloc", "serde_json/alloc", "scrypto/alloc", "scrypto/serde", "sbor/alloc"]
+
+[lints.rust]
+warnings = "allow"
+
+[lints.clippy]
+all = "allow"

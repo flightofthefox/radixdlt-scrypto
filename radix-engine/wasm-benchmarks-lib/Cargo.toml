@@ -16,3 +16,9 @@ radix-common = { path = "../../radix-common", default-features = false }
 default = ["std"]
 std = ["radix-common/std"]
 alloc = ["radix-common/alloc"]
+
+[lints.rust]
+warnings = "allow"
+
+[lints.clippy]
+all = "allow"

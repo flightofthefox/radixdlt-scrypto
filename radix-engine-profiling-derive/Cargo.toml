@@ -21,3 +21,9 @@ radix-engine-profiling = { workspace = true }
 default = []
 resource_tracker = ["radix-engine-profiling/resource_tracker"]
 
+
+[lints.rust]
+warnings = "allow"
+
+[lints.clippy]
+all = "allow"

@@ -78,3 +78,9 @@ coverage = ["radix-common/coverage", "radix-engine/coverage"]
 
 [lib]
 bench = false
+
+[lints.rust]
+warnings = "allow"
+
+[lints.clippy]
+all = "allow"

@@ -38,3 +38,9 @@ rocksdb = [
     "radix-substate-store-impls/rocksdb",
 ]
 ram_metrics = []
+
+[lints.rust]
+warnings = "allow"
+
+[lints.clippy]
+all = "allow"

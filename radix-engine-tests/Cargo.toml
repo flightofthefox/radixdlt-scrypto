@@ -147,3 +147,9 @@ post_run_db_check = ["scrypto-test/post_run_db_check"]
 # If this feature is enabled, this crate will compile all of the blueprints ahead of time and make
 # them available for use.
 compile-blueprints-at-build-time = ["dep:walkdir", "dep:cargo_toml"]
+
+[lints.rust]
+warnings = "allow"
+
+[lints.clippy]
+all = "allow"

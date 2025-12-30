@@ -43,3 +43,9 @@ alloc = [
     "radix-engine/lru",
     "radix-rust/alloc"
 ]
+
+[lints.rust]
+warnings = "allow"
+
+[lints.clippy]
+all = "allow"

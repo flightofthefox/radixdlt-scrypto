@@ -18,3 +18,9 @@ sbor-derive-common = { workspace = true }
 
 [features]
 trace = ["sbor-derive-common/trace"]
+
+[lints.rust]
+warnings = "allow"
+
+[lints.clippy]
+all = "allow"

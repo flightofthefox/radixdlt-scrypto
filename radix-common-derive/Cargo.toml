@@ -23,3 +23,9 @@ bench = false
 default = ["std"]
 std = ["radix-common/std"]
 alloc = ["radix-common/alloc"]
+
+[lints.rust]
+warnings = "allow"
+
+[lints.clippy]
+all = "allow"

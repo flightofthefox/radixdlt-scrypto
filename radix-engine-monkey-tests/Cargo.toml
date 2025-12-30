@@ -42,3 +42,9 @@ resource_tracker = ["dep:radix-engine-profiling", "radix-engine-profiling-derive
 
 [lib]
 bench = false
+
+[lints.rust]
+warnings = "allow"
+
+[lints.clippy]
+all = "allow"

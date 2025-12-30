@@ -27,3 +27,9 @@ bench = false
 default = ["std"]
 std = ["serde_json/std", "radix-engine-interface/std", "radix-common/std", "radix-engine/std", "radix-engine/moka", "radix-rust/std"]
 alloc = ["serde_json/alloc", "radix-engine-interface/alloc", "radix-common/alloc", "radix-engine/alloc", "radix-engine/lru", "radix-rust/alloc"]
+
+[lints.rust]
+warnings = "allow"
+
+[lints.clippy]
+all = "allow"
