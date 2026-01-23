@@ -3,7 +3,7 @@ use crate::state_tree::{list_substate_hashes_at_version, put_at_next_version};
 use radix_common::prelude::*;
 use radix_substate_store_interface::interface::*;
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug)]
 pub struct StateTreeUpdatingDatabase<D> {
     underlying: D,
     tree_store: TypedInMemoryTreeStore,

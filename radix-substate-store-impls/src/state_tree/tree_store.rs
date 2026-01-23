@@ -7,6 +7,7 @@ use radix_common::prelude::*;
 use radix_substate_store_interface::interface::*;
 use sbor::rust::cell::Ref;
 use sbor::rust::cell::RefCell;
+use sbor::rust::sync::RwLock;
 
 define_single_versioned! {
     #[derive(Clone, PartialEq, Eq, Hash, Debug, Sbor)]
@@ -187,23 +188,22 @@ pub trait TreeStore: ReadableTreeStore + WriteableTreeStore {}
 impl<S: ReadableTreeStore + WriteableTreeStore> TreeStore for S {}
 
 /// A `TreeStore` based on memory object copies (i.e. no serialization).
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug)]
 pub struct TypedInMemoryTreeStore {
-    pub tree_nodes: RefCell<HashMap<StoredTreeNodeKey, TreeNode>>,
-    pub stale_part_buffer: RefCell<Vec<StaleTreePart>>,
+    pub tree_nodes: RwLock<HashMap<StoredTreeNodeKey, TreeNode>>,
+    pub stale_part_buffer: RwLock<Vec<StaleTreePart>>,
     pub associated_substates:
-        RefCell<HashMap<StoredTreeNodeKey, (DbSubstateKey, Option<DbSubstateValue>)>>,
+        RwLock<HashMap<StoredTreeNodeKey, (DbSubstateKey, Option<DbSubstateValue>)>>,
     pub pruning_enabled: bool,
     pub store_associated_substates: bool,
 }
 
 impl TypedInMemoryTreeStore {
-    /// A constructor of a newly-initialized, empty store.
     pub fn new() -> Self {
         Self {
-            tree_nodes: RefCell::new(hash_map_new()),
-            stale_part_buffer: RefCell::new(Vec::new()),
-            associated_substates: RefCell::new(hash_map_new()),
+            tree_nodes: RwLock::new(hash_map_new()),
+            stale_part_buffer: RwLock::new(Vec::new()),
+            associated_substates: RwLock::new(hash_map_new()),
             pruning_enabled: false,
             store_associated_substates: false,
         }
@@ -239,13 +239,13 @@ impl TreeReader<Version> for TypedInMemoryTreeStore {
 
 impl ReadableTreeStore for TypedInMemoryTreeStore {
     fn get_node(&self, key: &StoredTreeNodeKey) -> Option<TreeNode> {
-        self.tree_nodes.borrow().get(key).cloned()
+        self.tree_nodes.read().unwrap().get(key).cloned()
     }
 }
 
 impl WriteableTreeStore for TypedInMemoryTreeStore {
     fn insert_node(&self, key: StoredTreeNodeKey, node: TreeNode) {
-        self.tree_nodes.borrow_mut().insert(key, node);
+        self.tree_nodes.write().unwrap().insert(key, node);
     }
 
     fn associate_substate(
@@ -260,7 +260,7 @@ impl WriteableTreeStore for TypedInMemoryTreeStore {
                 AssociatedSubstateValue::Upserted(value) => Some(value.to_owned()),
                 AssociatedSubstateValue::Unchanged => None,
             };
-            self.associated_substates.borrow_mut().insert(
+            self.associated_substates.write().unwrap().insert(
                 state_tree_leaf_key.clone(),
                 ((partition_key.clone(), sort_key.clone()), substate_value),
             );
@@ -271,14 +271,14 @@ impl WriteableTreeStore for TypedInMemoryTreeStore {
         if self.pruning_enabled {
             match part {
                 StaleTreePart::Node(node_key) => {
-                    self.tree_nodes.borrow_mut().remove(&node_key);
+                    self.tree_nodes.write().unwrap().remove(&node_key);
                 }
                 StaleTreePart::Subtree(node_key) => {
                     let mut queue = VecDeque::new();
                     queue.push_back(node_key);
 
                     while let Some(node_key) = queue.pop_front() {
-                        if let Some(value) = self.tree_nodes.borrow_mut().remove(&node_key) {
+                        if let Some(value) = self.tree_nodes.write().unwrap().remove(&node_key) {
                             match value {
                                 TreeNodeV1::Internal(x) => {
                                     for child in x.children {
@@ -296,7 +296,7 @@ impl WriteableTreeStore for TypedInMemoryTreeStore {
                 }
             }
         } else {
-            self.stale_part_buffer.borrow_mut().push(part);
+            self.stale_part_buffer.write().unwrap().push(part);
         }
     }
 }
