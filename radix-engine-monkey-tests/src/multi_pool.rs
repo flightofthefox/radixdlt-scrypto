@@ -40,7 +40,7 @@ impl MultiPoolFuzzAction {
                     .map(|resource| (*resource, fuzzer.next_amount()))
                     .collect();
 
-                let mut builder = ManifestBuilder::new();
+                let mut builder = builder;
                 for (resource_address, amount) in resource_to_amount_mapping.iter() {
                     builder = builder.mint_fungible(*resource_address, *amount)
                 }

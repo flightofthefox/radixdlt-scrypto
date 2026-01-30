@@ -17,7 +17,10 @@ fn test_simple_deterministic_execution() {
     assert_eq!(public_key0, public_key1);
     assert_eq!(account0, account1);
     assert_eq!(ledger0.get_state_hash(), ledger1.get_state_hash());
-    assert_eq!(ledger0.substate_db(), ledger1.substate_db());
+    assert_eq!(
+        ledger0.substate_db().list_substate_hashes(),
+        ledger1.substate_db().list_substate_hashes()
+    );
 }
 
 #[test]

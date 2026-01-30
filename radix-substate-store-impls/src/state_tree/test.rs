@@ -235,7 +235,7 @@ fn substate_values_get_associated_with_substate_tier_leaves() {
         change_exact(vec![220, 3], 99, vec![253], Some(vec![7; 66])),
     ]);
 
-    let associated_substates = tester.tree_store.associated_substates.borrow();
+    let associated_substates = tester.tree_store.associated_substates.read().unwrap();
     assert_eq!(
         associated_substates.deref(),
         &hashmap!(
@@ -271,7 +271,7 @@ fn substate_values_get_re_associated_after_tree_restructuring() {
     ]);
 
     // For clearer assert, let's disregard the substates associated in this step:
-    tester.tree_store.associated_substates.borrow_mut().clear();
+    tester.tree_store.associated_substates.write().unwrap().clear();
 
     // Now inserting this "sibling" substate forces rewrite of the leaf associated with sort key `vec![6, 7, 5, 9]`:
     tester.put_substate_changes(vec![change_exact(
@@ -281,7 +281,7 @@ fn substate_values_get_re_associated_after_tree_restructuring() {
         Some(vec![3]),
     )]);
 
-    let associated_substates = tester.tree_store.associated_substates.borrow();
+    let associated_substates = tester.tree_store.associated_substates.read().unwrap();
     assert_eq!(
         associated_substates.deref(),
         &hashmap!(
@@ -310,7 +310,7 @@ fn substate_values_get_re_associated_on_partition_reset() {
     ]);
 
     // For clearer assert, let's disregard the substates associated in this step:
-    tester.tree_store.associated_substates.borrow_mut().clear();
+    tester.tree_store.associated_substates.write().unwrap().clear();
 
     // Now we achieve the "add sibling substate", but using a partition reset:
     tester.reset_partition(
@@ -322,7 +322,7 @@ fn substate_values_get_re_associated_on_partition_reset() {
         ],
     );
 
-    let associated_substates = tester.tree_store.associated_substates.borrow();
+    let associated_substates = tester.tree_store.associated_substates.read().unwrap();
     assert_eq!(
         associated_substates.deref(),
         &hashmap!(
@@ -373,7 +373,8 @@ fn records_stale_tree_node_keys() {
     let stale_versions = tester
         .tree_store
         .stale_part_buffer
-        .borrow()
+        .read()
+        .unwrap()
         .iter()
         .map(|stale_part| {
             let StaleTreePart::Node(key) = stale_part else {
@@ -445,7 +446,7 @@ fn records_stale_subtree_root_key_when_partition_removed() {
     ]);
     tester.reset_partition(from_seed(4), 7, vec![]);
     assert_eq!(
-        tester.tree_store.stale_part_buffer.borrow().to_vec(),
+        tester.tree_store.stale_part_buffer.read().unwrap().to_vec(),
         vec![
             // The entire subtree starting at the root of substate-tier JMT of partition `4:7`:
             StaleTreePart::Subtree(StoredTreeNodeKey::new(
@@ -996,7 +997,7 @@ impl StateTreeTester<TypedInMemoryTreeStore> {
     }
 
     pub fn get_leafs_of_tier(&mut self, tier: Tier) -> HashMap<LeafKey, Hash> {
-        let binding = self.tree_store.stale_part_buffer.borrow().clone();
+        let binding = self.tree_store.stale_part_buffer.read().unwrap().clone();
         let stale_node_keys = binding
             .into_iter()
             .flat_map(|stale_part| match stale_part {
@@ -1015,7 +1016,8 @@ impl StateTreeTester<TypedInMemoryTreeStore> {
         let expected_separator_count = tier as usize;
         self.tree_store
             .tree_nodes
-            .borrow()
+            .read()
+            .unwrap()
             .iter()
             .filter(|(key, _)| {
                 let separator_count = key
