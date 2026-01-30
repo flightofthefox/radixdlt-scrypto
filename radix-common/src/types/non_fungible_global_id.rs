@@ -1,11 +1,9 @@
 use crate::internal_prelude::*;
-#[cfg(feature = "fuzzing")]
-use arbitrary::Arbitrary;
 
 /// Represents the global id of a non-fungible.
 #[cfg_attr(
     feature = "fuzzing",
-    derive(Arbitrary, serde::Serialize, serde::Deserialize)
+    derive(::arbitrary::Arbitrary, ::serde::Serialize, ::serde::Deserialize)
 )]
 #[derive(
     Clone,
@@ -279,7 +277,7 @@ mod tests {
         assert_eq!(
             NonFungibleGlobalId::try_from_canonical_string(
                 &address_bech32_decoder,
-                &NON_FUNGIBLE_RESOURCE_SIM_ADDRESS,
+                NON_FUNGIBLE_RESOURCE_SIM_ADDRESS,
             ),
             Err(ParseNonFungibleGlobalIdError::RequiresTwoParts)
         );

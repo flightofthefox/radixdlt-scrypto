@@ -14,11 +14,13 @@ impl UpdateSettings for DugongSettings {
         ProtocolVersion::Dugong
     }
 
-    fn all_enabled_as_default_for_network(network: &NetworkDefinition) -> Self {
-        Self {
-            native_entity_metadata_updates: UpdateSetting::enabled_as_default_for_network(network),
-            system_logic_updates: UpdateSetting::enabled_as_default_for_network(network),
-        }
+    /// # Note
+    ///
+    /// For the time being this function creates a new [`DugongSettings`] with all of the updates
+    /// disabled. This is done because this version of Scrypto ships with the Dugong protocol update
+    /// but we won't enact the protocol upgrade.
+    fn all_enabled_as_default_for_network(_network: &NetworkDefinition) -> Self {
+        Self::all_disabled()
     }
 
     fn all_disabled() -> Self {
@@ -40,7 +42,7 @@ pub struct DugongGenerator {
 }
 
 impl ProtocolUpdateGenerator for DugongGenerator {
-    fn batch_groups(&self) -> Vec<Box<dyn ProtocolUpdateBatchGroupGenerator + '_>> {
+    fn batch_groups(&self) -> Vec<Box<dyn ProtocolUpdateBatchGroupGenerator<'_> + '_>> {
         vec![FixedBatchGroupGenerator::named("principal")
             .add_batch("primary", |store| {
                 generate_main_batch(store, &self.settings)

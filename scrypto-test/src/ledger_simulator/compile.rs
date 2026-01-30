@@ -25,10 +25,14 @@ impl Compile {
     ) -> (Vec<u8>, PackageDefinition) {
         Self::compile_with_env_vars(
             package_dir,
-            btreemap! {
-                "RUSTFLAGS".to_owned() => "".to_owned(),
-                "CARGO_ENCODED_RUSTFLAGS".to_owned() => "".to_owned(),
-            },
+            DEFAULT_ENVIRONMENT_VARIABLES
+                .clone()
+                .into_iter()
+                .filter_map(|(key, value)| match value {
+                    EnvironmentVariableAction::Set(value) => Some((key, value)),
+                    EnvironmentVariableAction::Unset => None,
+                })
+                .collect(),
             compile_profile,
             true,
         )
@@ -71,8 +75,9 @@ impl Compile {
         if _use_coverage {
             compiler_builder.coverage();
 
-            let mut coverage_dir = std::path::PathBuf::from(package_dir.as_ref());
-            coverage_dir.push("coverage");
+            let coverage_dir = std::path::PathBuf::from(package_dir.as_ref())
+                .join("target")
+                .join("coverage");
             compiler_builder.target_directory(coverage_dir);
         }
 
@@ -101,23 +106,28 @@ impl Compile {
                             &manifest.target_output_binary_rpd_path, err
                         )
                     });
-                let definition = manifest_decode(&definition).unwrap_or_else(|err| {
-                    panic!(
-                        "Failed to parse package definition from path {:?} - {:?}",
-                        &manifest.target_output_binary_rpd_path, err
-                    )
-                });
+                let definition = manifest_decode::<ManifestPackageDefinition>(&definition)
+                    .unwrap_or_else(|err| {
+                        panic!(
+                            "Failed to parse package definition from path {:?} - {:?}",
+                            &manifest.target_output_binary_rpd_path, err
+                        )
+                    })
+                    .try_into_typed()
+                    .unwrap_or_else(|err| {
+                        panic!(
+                            "Failed to parse package definition from path {:?} - {:?}",
+                            &manifest.target_output_binary_rpd_path, err
+                        )
+                    });
                 return (code, definition);
             }
         }
 
         // Build
         let mut build_artifacts = compiler.compile().unwrap_or_else(|error| {
-            match &error {
-                ScryptoCompilerError::CargoBuildFailure(exit_code) => {
-                    eprintln!("Package compilation error:\n{:?}", exit_code)
-                }
-                _ => (),
+            if let ScryptoCompilerError::CargoBuildFailure(exit_code) = &error {
+                eprintln!("Package compilation error:\n{:?}", exit_code)
             }
 
             panic!(

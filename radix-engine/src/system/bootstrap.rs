@@ -41,7 +41,7 @@ lazy_static! {
 //   match the corresponding models in the `genesis_helper` component
 //==========================================================================================
 
-#[derive(Debug, Clone, Eq, PartialEq, ManifestSbor, ScryptoSbor)]
+#[derive(Debug, Clone, Eq, PartialEq, ScryptoSbor, ManifestEncode, ManifestCategorize)]
 pub struct GenesisValidator {
     pub key: Secp256k1PublicKey,
     pub accept_delegated_stake: bool,
@@ -113,7 +113,7 @@ pub enum GenesisDataChunk {
 // - These must match the corresponding models in the `genesis_helper` component
 //==========================================================================================
 
-#[derive(Debug, Clone, Eq, PartialEq, ManifestSbor)]
+#[derive(Debug, Clone, Eq, PartialEq, ManifestEncode, ManifestCategorize)]
 pub enum ManifestGenesisDataChunk {
     Validators(Vec<GenesisValidator>),
     Stakes {
@@ -128,7 +128,7 @@ pub enum ManifestGenesisDataChunk {
     XrdBalances(Vec<(ComponentAddress, Decimal)>),
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, ManifestSbor)]
+#[derive(Debug, Clone, Eq, PartialEq, ManifestEncode, ManifestCategorize)]
 pub struct ManifestGenesisResource {
     pub resource_address_reservation: ManifestAddressReservation,
     pub metadata: Vec<(String, MetadataValue)>,
@@ -352,7 +352,7 @@ pub fn create_system_bootstrap_flash_state_updates() -> StateUpdates {
                 .collect();
 
             // To avoid creating wasted structure in StateUpdates, only create this partition if a change exists.
-            if partition_updates.len() > 0 {
+            if !partition_updates.is_empty() {
                 to_flash
                     .of_node(address)
                     .of_partition(partition_num)
@@ -411,7 +411,7 @@ pub fn create_system_bootstrap_transaction(
             FUNGIBLE_RESOURCE_MANAGER_BLUEPRINT,
             FUNGIBLE_RESOURCE_MANAGER_CREATE_WITH_INITIAL_SUPPLY_IDENT,
             FungibleResourceManagerCreateWithInitialSupplyManifestInput {
-                owner_role: OwnerRole::Fixed(rule!(require(system_execution(SystemExecution::Protocol)))),
+                owner_role: OwnerRole::Fixed(rule!(require(system_execution(SystemExecution::Protocol)))).into(),
                 track_total_supply: false,
                 divisibility: 18,
                 resource_roles: FungibleResourceRoles {
@@ -424,17 +424,17 @@ pub fn create_system_bootstrap_transaction(
                         burner_updater => rule!(deny_all);
                     },
                     ..Default::default()
-                },
+                }.into(),
                 metadata: metadata! {
                     init {
                         "symbol" => "XRD".to_owned(), locked;
                         "name" => "Radix".to_owned(), locked;
                         "description" => "The Radix Public Network's native token, used to pay the network's required transaction fees and to secure the network through staking to its validator nodes.".to_owned(), locked;
-                        "icon_url" => UncheckedUrl::of("https://assets.radixdlt.com/icons/icon-xrd-32x32.png".to_owned()), locked;
-                        "info_url" => UncheckedUrl::of("https://tokens.radixdlt.com".to_owned()), locked;
+                        "icon_url" => UncheckedUrl::of("https://assets.radixdlt.com/icons/icon-xrd-32x32.png"), locked;
+                        "info_url" => UncheckedUrl::of("https://tokens.radixdlt.com"), locked;
                         "tags" => Vec::<String>::new(), locked;
                     }
-                },
+                }.into(),
                 initial_supply: Decimal::zero(),
                 address_reservation: Some(xrd_reservation),
             },
@@ -453,7 +453,7 @@ pub fn create_system_bootstrap_transaction(
             NON_FUNGIBLE_RESOURCE_MANAGER_BLUEPRINT,
             NON_FUNGIBLE_RESOURCE_MANAGER_CREATE_IDENT,
             NonFungibleResourceManagerCreateManifestInput {
-                owner_role: OwnerRole::Fixed(rule!(require(system_execution(SystemExecution::Protocol)))),
+                owner_role: OwnerRole::Fixed(rule!(require(system_execution(SystemExecution::Protocol)))).into(),
                 id_type: NonFungibleIdType::Bytes,
                 track_total_supply: false,
                 non_fungible_schema: NonFungibleDataSchema::new_local_without_self_package_replacement::<()>(),
@@ -463,15 +463,16 @@ pub fn create_system_bootstrap_transaction(
                         withdrawer_updater => rule!(deny_all);
                     },
                     ..Default::default()
-                },
+                }.into(),
                 metadata: metadata! {
                     init {
                         "name" => "Package Virtual Badges".to_owned(), locked;
                         "description" => "Virtual badges generated automatically by the Radix system to represent the authority of the package for a direct caller. These badges cease to exist at the end of their transaction.".to_owned(), locked;
                         "tags" => vec!["badge".to_owned()], locked;
-                        "icon_url" => UncheckedUrl::of("https://assets.radixdlt.com/icons/icon-package_of_direct_caller_virtual_badge.png".to_owned()), locked;
+                        "icon_url" => UncheckedUrl::of("https://assets.radixdlt.com/icons/icon-package_of_direct_caller_virtual_badge.png"), locked;
                     }
-                },
+                }
+                .into(),
                 address_reservation: Some(reservation),
             },
         );
@@ -489,7 +490,7 @@ pub fn create_system_bootstrap_transaction(
             NON_FUNGIBLE_RESOURCE_MANAGER_BLUEPRINT,
             NON_FUNGIBLE_RESOURCE_MANAGER_CREATE_IDENT,
             NonFungibleResourceManagerCreateManifestInput {
-                owner_role: OwnerRole::Fixed(rule!(require(system_execution(SystemExecution::Protocol)))),
+                owner_role: OwnerRole::Fixed(rule!(require(system_execution(SystemExecution::Protocol)))).into(),
                 id_type: NonFungibleIdType::Bytes,
                 track_total_supply: false,
                 non_fungible_schema: NonFungibleDataSchema::new_local_without_self_package_replacement::<()>(),
@@ -499,15 +500,15 @@ pub fn create_system_bootstrap_transaction(
                         withdrawer_updater => rule!(deny_all);
                     },
                     ..Default::default()
-                },
+                }.into(),
                 metadata: metadata! {
                     init {
                         "name" => "Global Caller Virtual Badges".to_owned(), locked;
                         "description" => "Virtual badges generated automatically by the Radix system to represent the authority of a global caller. These badges cease to exist at the end of their transaction.".to_owned(), locked;
                         "tags" => vec!["badge".to_owned()], locked;
-                        "icon_url" => UncheckedUrl::of("https://assets.radixdlt.com/icons/icon-global_caller_virtual_badge.png".to_owned()), locked;
+                        "icon_url" => UncheckedUrl::of("https://assets.radixdlt.com/icons/icon-global_caller_virtual_badge.png"), locked;
                     }
-                },
+                }.into(),
                 address_reservation: Some(reservation),
             },
         );
@@ -525,7 +526,7 @@ pub fn create_system_bootstrap_transaction(
             NON_FUNGIBLE_RESOURCE_MANAGER_BLUEPRINT,
             NON_FUNGIBLE_RESOURCE_MANAGER_CREATE_IDENT,
             NonFungibleResourceManagerCreateManifestInput {
-                owner_role: OwnerRole::Fixed(rule!(require(global_caller(PACKAGE_PACKAGE)))),
+                owner_role: OwnerRole::Fixed(rule!(require(global_caller(PACKAGE_PACKAGE)))).into(),
                 id_type: NonFungibleIdType::Bytes,
                 track_total_supply: false,
                 non_fungible_schema: NonFungibleDataSchema::new_local_without_self_package_replacement::<PackageOwnerBadgeData>(),
@@ -535,15 +536,15 @@ pub fn create_system_bootstrap_transaction(
                         minter_updater => rule!(deny_all);
                     },
                     ..Default::default()
-                },
+                }.into(),
                 metadata: metadata! {
                     init {
                         "name" => "Package Owner Badges".to_owned(), locked;
                         "description" => "Badges created by the Radix system that provide individual control over blueprint packages deployed by developers.".to_owned(), locked;
                         "tags" => vec!["badge".to_owned(), "package".to_owned()], locked;
-                        "icon_url" => UncheckedUrl::of("https://assets.radixdlt.com/icons/icon-package_owner_badge.png".to_owned()), locked;
+                        "icon_url" => UncheckedUrl::of("https://assets.radixdlt.com/icons/icon-package_owner_badge.png"), locked;
                     }
-                },
+                }.into(),
                 address_reservation: Some(reservation),
             },
         );
@@ -561,7 +562,7 @@ pub fn create_system_bootstrap_transaction(
             NON_FUNGIBLE_RESOURCE_MANAGER_BLUEPRINT,
             NON_FUNGIBLE_RESOURCE_MANAGER_CREATE_IDENT,
             NonFungibleResourceManagerCreateManifestInput {
-                owner_role: OwnerRole::Fixed(rule!(require(global_caller(IDENTITY_PACKAGE)))),
+                owner_role: OwnerRole::Fixed(rule!(require(global_caller(IDENTITY_PACKAGE)))).into(),
                 id_type: NonFungibleIdType::Bytes,
                 track_total_supply: false,
                 non_fungible_schema: NonFungibleDataSchema::new_local_without_self_package_replacement::<IdentityOwnerBadgeData>(),
@@ -571,15 +572,15 @@ pub fn create_system_bootstrap_transaction(
                         minter_updater => rule!(deny_all);
                     },
                     ..Default::default()
-                },
+                }.into(),
                 metadata: metadata! {
                     init {
                         "name" => "Identity Owner Badges".to_owned(), locked;
                         "description" => "Badges created by the Radix system that provide individual control over identity components.".to_owned(), locked;
                         "tags" => vec!["badge".to_owned(), "identity".to_owned()], locked;
-                        "icon_url" => UncheckedUrl::of("https://assets.radixdlt.com/icons/icon-identity_owner_badge.png".to_owned()), locked;
+                        "icon_url" => UncheckedUrl::of("https://assets.radixdlt.com/icons/icon-identity_owner_badge.png"), locked;
                     }
-                },
+                }.into(),
                 address_reservation: Some(badge_reservation),
             },
         );
@@ -595,12 +596,12 @@ pub fn create_system_bootstrap_transaction(
             PACKAGE_PUBLISH_NATIVE_IDENT,
             PackagePublishNativeManifestInput {
                 package_address: Some(package_reservation),
-                definition: IDENTITY_PACKAGE_DEFINITION.clone(),
+                definition: IDENTITY_PACKAGE_DEFINITION.clone().into(),
                 native_package_code_id: NativeCodeId::IdentityCode1 as u64,
                 metadata: metadata_init! {
                     "name" => "Identity Package".to_owned(), locked;
                     "description" => "A native package that defines the logic of identity components.".to_owned(), locked;
-                },
+                }.into(),
             },
         );
     }
@@ -618,12 +619,12 @@ pub fn create_system_bootstrap_transaction(
             PACKAGE_PUBLISH_NATIVE_IDENT,
             PackagePublishNativeManifestInput {
                 package_address: Some(reservation),
-                definition: CONSENSUS_MANAGER_PACKAGE_DEFINITION.clone(),
+                definition: CONSENSUS_MANAGER_PACKAGE_DEFINITION.clone().into(),
                 native_package_code_id: NativeCodeId::ConsensusManagerCode1 as u64,
                 metadata: metadata_init! {
                     "name" => "Consensus Manager Package".to_owned(), locked;
                     "description" => "A native package that may be used to get network consensus information.".to_owned(), locked;
-                },
+                }.into(),
             },
         );
     }
@@ -640,7 +641,7 @@ pub fn create_system_bootstrap_transaction(
             NON_FUNGIBLE_RESOURCE_MANAGER_BLUEPRINT,
             NON_FUNGIBLE_RESOURCE_MANAGER_CREATE_IDENT,
             NonFungibleResourceManagerCreateManifestInput {
-                owner_role: OwnerRole::Fixed(rule!(require(global_caller(ACCOUNT_PACKAGE)))),
+                owner_role: OwnerRole::Fixed(rule!(require(global_caller(ACCOUNT_PACKAGE)))).into(),
                 id_type: NonFungibleIdType::Bytes,
                 track_total_supply: false,
                 non_fungible_schema: NonFungibleDataSchema::new_local_without_self_package_replacement::<AccountOwnerBadgeData>(),
@@ -650,7 +651,7 @@ pub fn create_system_bootstrap_transaction(
                         minter_updater => rule!(deny_all);
                     },
                     ..Default::default()
-                },
+                }.into(),
                 metadata: metadata! {
                     init {
                         "name" => "Account Owner Badges".to_owned(), locked;
@@ -659,9 +660,9 @@ pub fn create_system_bootstrap_transaction(
                             "badge".to_owned(),
                             "account".to_owned(),
                         ], locked;
-                        "icon_url" => UncheckedUrl::of("https://assets.radixdlt.com/icons/icon-account_owner_badge.png".to_owned()), locked;
+                        "icon_url" => UncheckedUrl::of("https://assets.radixdlt.com/icons/icon-account_owner_badge.png"), locked;
                     }
-                },
+                }.into(),
                 address_reservation: Some(badge_reservation),
             },
         );
@@ -677,12 +678,12 @@ pub fn create_system_bootstrap_transaction(
             PACKAGE_PUBLISH_NATIVE_IDENT,
             PackagePublishNativeManifestInput {
                 package_address: Some(package_reservation),
-                definition: ACCOUNT_PACKAGE_DEFINITION.clone(),
+                definition: ACCOUNT_PACKAGE_DEFINITION.clone().into(),
                 native_package_code_id: NativeCodeId::AccountCode1 as u64,
                 metadata: metadata_init! {
                     "name" => "Account Package".to_owned(), locked;
                     "description" => "A native package that defines the logic of account components.".to_owned(), locked;
-                },
+                }.into(),
             },
         );
     }
@@ -700,11 +701,11 @@ pub fn create_system_bootstrap_transaction(
             PACKAGE_PUBLISH_NATIVE_IDENT,
             PackagePublishNativeManifestInput {
                 package_address: Some(reservation),
-                definition: ACCESS_CONTROLLER_PACKAGE_DEFINITION_V1_0.clone(),
+                definition: ACCESS_CONTROLLER_PACKAGE_DEFINITION_V1_0.clone().into(),
                 metadata: metadata_init! {
                     "name" => "Access Controller Package".to_owned(), locked;
                     "description" => "A native package that defines the logic of access controller components.".to_owned(), locked;
-                },
+                }.into(),
                 native_package_code_id: NativeCodeId::AccessControllerCode1 as u64,
             },
         );
@@ -723,11 +724,11 @@ pub fn create_system_bootstrap_transaction(
             PACKAGE_PUBLISH_NATIVE_IDENT,
             PackagePublishNativeManifestInput {
                 package_address: Some(reservation),
-                definition: POOL_PACKAGE_DEFINITION_V1_0.clone(),
+                definition: POOL_PACKAGE_DEFINITION_V1_0.clone().into(),
                 metadata: metadata_init! {
                     "name" => "Pool Package".to_owned(), locked;
                     "description" => "A native package that defines the logic for a selection of pool components.".to_owned(), locked;
-                },
+                }.into(),
                 native_package_code_id: NativeCodeId::PoolCode1 as u64,
             },
         );
@@ -745,19 +746,19 @@ pub fn create_system_bootstrap_transaction(
             NON_FUNGIBLE_RESOURCE_MANAGER_BLUEPRINT,
             NON_FUNGIBLE_RESOURCE_MANAGER_CREATE_IDENT,
             NonFungibleResourceManagerCreateManifestInput {
-                owner_role: OwnerRole::Fixed(rule!(require(system_execution(SystemExecution::Protocol)))),
+                owner_role: OwnerRole::Fixed(rule!(require(system_execution(SystemExecution::Protocol)))).into(),
                 id_type: NonFungibleIdType::Bytes,
                 track_total_supply: false,
                 non_fungible_schema: NonFungibleDataSchema::new_local_without_self_package_replacement::<()>(),
-                resource_roles: NonFungibleResourceRoles::default(),
+                resource_roles: NonFungibleResourceRoles::default().into(),
                 metadata: metadata! {
                     init {
                         "name" => "ECDSA secp256k1 Virtual Badges".to_owned(), locked;
                         "description" => "Virtual badges generated automatically by the Radix system to represent ECDSA secp256k1 signatures applied to transactions. These badges cease to exist at the end of their transaction.".to_owned(), locked;
                         "tags" => vec!["badge".to_owned()], locked;
-                        "icon_url" => UncheckedUrl::of("https://assets.radixdlt.com/icons/icon-ecdsa_secp256k1_signature_virtual_badge.png".to_owned()), locked;
+                        "icon_url" => UncheckedUrl::of("https://assets.radixdlt.com/icons/icon-ecdsa_secp256k1_signature_virtual_badge.png"), locked;
                     }
-                },
+                }.into(),
                 address_reservation: Some(reservation),
             }
         );
@@ -775,19 +776,19 @@ pub fn create_system_bootstrap_transaction(
             NON_FUNGIBLE_RESOURCE_MANAGER_BLUEPRINT,
             NON_FUNGIBLE_RESOURCE_MANAGER_CREATE_IDENT,
             NonFungibleResourceManagerCreateManifestInput {
-                owner_role: OwnerRole::Fixed(rule!(require(system_execution(SystemExecution::Protocol)))),
+                owner_role: OwnerRole::Fixed(rule!(require(system_execution(SystemExecution::Protocol)))).into(),
                 id_type: NonFungibleIdType::Bytes,
                 track_total_supply: false,
                 non_fungible_schema: NonFungibleDataSchema::new_local_without_self_package_replacement::<()>(),
-                resource_roles: NonFungibleResourceRoles::default(),
+                resource_roles: NonFungibleResourceRoles::default().into(),
                 metadata: metadata! {
                     init {
                         "name" => "EdDSA Ed25519 Virtual Badges".to_owned(), locked;
                         "description" => "Virtual badges generated automatically by the Radix system to represent EdDSA Ed25519 signatures applied to transactions. These badges cease to exist at the end of their transaction.".to_owned(), locked;
                         "tags" => vec!["badge".to_owned()], locked;
-                        "icon_url" => UncheckedUrl::of("https://assets.radixdlt.com/icons/icon-eddsa_ed25519_signature_virtual_badge.png".to_owned()), locked;
+                        "icon_url" => UncheckedUrl::of("https://assets.radixdlt.com/icons/icon-eddsa_ed25519_signature_virtual_badge.png"), locked;
                     }
-                },
+                }.into(),
                 address_reservation: Some(reservation),
             },
         );
@@ -805,19 +806,19 @@ pub fn create_system_bootstrap_transaction(
             NON_FUNGIBLE_RESOURCE_MANAGER_BLUEPRINT,
             NON_FUNGIBLE_RESOURCE_MANAGER_CREATE_IDENT,
             NonFungibleResourceManagerCreateManifestInput {
-                owner_role: OwnerRole::Fixed(rule!(require(system_execution(SystemExecution::Protocol)))),
+                owner_role: OwnerRole::Fixed(rule!(require(system_execution(SystemExecution::Protocol)))).into(),
                 id_type: NonFungibleIdType::Integer,
                 track_total_supply: false,
                 non_fungible_schema: NonFungibleDataSchema::new_local_without_self_package_replacement::<()>(),
-                resource_roles: NonFungibleResourceRoles::default(),
+                resource_roles: NonFungibleResourceRoles::default().into(),
                 metadata: metadata! {
                     init {
                         "name" => "System Transaction Badge".to_owned(), locked;
                         "description" => "Virtual badges are created under this resource to represent the Radix system's authority at genesis and to affect changes to system entities during protocol updates, or to represent the Radix system's authority in the regularly occurring system transactions including round and epoch changes.".to_owned(), locked;
                         "tags" => vec!["badge".to_owned(), "system badge".to_owned()], locked;
-                        "icon_url" => UncheckedUrl::of("https://assets.radixdlt.com/icons/icon-system_transaction_badge.png".to_owned()), locked;
+                        "icon_url" => UncheckedUrl::of("https://assets.radixdlt.com/icons/icon-system_transaction_badge.png"), locked;
                     }
-                },
+                }.into(),
                 address_reservation: Some(reservation),
             },
         );
@@ -833,12 +834,12 @@ pub fn create_system_bootstrap_transaction(
         manifest_builder = manifest_builder.publish_package_advanced(
             reservation,
             include_bytes!("../../assets/faucet.wasm").to_vec(),
-            manifest_decode(include_bytes!("../../assets/faucet.rpd")).unwrap(),
+            manifest_decode::<ManifestPackageDefinition>(include_bytes!("../../assets/faucet.rpd")).unwrap().try_into_typed().unwrap(),
             metadata_init!{
                 "name" => "Faucet Package".to_owned(), locked;
                 "description" => "A package that defines the logic of a simple faucet component for testing purposes.".to_owned(), locked;
             },
-            OwnerRole::None,
+            OwnerRole::None
         );
     }
 
@@ -852,7 +853,7 @@ pub fn create_system_bootstrap_transaction(
         manifest_builder = manifest_builder.publish_package_advanced(
             reservation,
             include_bytes!("../../assets/genesis_helper.wasm").to_vec(),
-            manifest_decode(include_bytes!("../../assets/genesis_helper.rpd")).unwrap(),
+            manifest_decode::<ManifestPackageDefinition>(include_bytes!("../../assets/genesis_helper.rpd")).unwrap().try_into_typed().unwrap(),
             metadata_init! {
                 "name" => "Genesis Helper Package".to_owned(), locked;
                 "description" => "A package that defines the logic of the genesis helper which includes various utility and helper functions used in the creation of the Babylon Genesis.".to_owned(), locked;
@@ -921,8 +922,8 @@ pub fn create_system_bootstrap_transaction(
             PackagePublishNativeManifestInput {
                 package_address: Some(reservation),
                 native_package_code_id: NativeCodeId::TransactionTrackerCode1 as u64,
-                definition: TRANSACTION_TRACKER_PACKAGE_DEFINITION.clone(),
-                metadata: metadata_init!(),
+                definition: TRANSACTION_TRACKER_PACKAGE_DEFINITION.clone().into(),
+                metadata: metadata_init!().into(),
             },
         );
     }
@@ -963,7 +964,7 @@ pub fn create_system_bootstrap_transaction(
 
     manifest_builder
         .build()
-        .into_transaction(hash(format!("Genesis Bootstrap")))
+        .into_transaction(hash("Genesis Bootstrap"))
 }
 
 pub fn create_genesis_data_ingestion_transaction(
@@ -1021,5 +1022,5 @@ pub fn create_genesis_wrap_up_transaction() -> SystemTransactionV1 {
         .call_method(GENESIS_HELPER, "wrap_up", ())
         .build();
 
-    manifest.into_transaction(hash(format!("Genesis Wrap Up")))
+    manifest.into_transaction(hash("Genesis Wrap Up"))
 }
