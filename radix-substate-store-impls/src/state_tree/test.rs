@@ -271,7 +271,12 @@ fn substate_values_get_re_associated_after_tree_restructuring() {
     ]);
 
     // For clearer assert, let's disregard the substates associated in this step:
-    tester.tree_store.associated_substates.write().unwrap().clear();
+    tester
+        .tree_store
+        .associated_substates
+        .write()
+        .unwrap()
+        .clear();
 
     // Now inserting this "sibling" substate forces rewrite of the leaf associated with sort key `vec![6, 7, 5, 9]`:
     tester.put_substate_changes(vec![change_exact(
@@ -310,7 +315,12 @@ fn substate_values_get_re_associated_on_partition_reset() {
     ]);
 
     // For clearer assert, let's disregard the substates associated in this step:
-    tester.tree_store.associated_substates.write().unwrap().clear();
+    tester
+        .tree_store
+        .associated_substates
+        .write()
+        .unwrap()
+        .clear();
 
     // Now we achieve the "add sibling substate", but using a partition reset:
     tester.reset_partition(
