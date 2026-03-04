@@ -18,11 +18,11 @@ use types::*;
 // suppress warnings.
 
 #[allow(dead_code)]
-mod jellyfish;
+pub mod jellyfish;
 #[cfg(test)]
 mod test;
 #[allow(dead_code)]
-mod types;
+pub mod types;
 
 /// Inserts a new set of nodes at version `current_state_version` + 1 into the "3-Tier JMT" persisted
 /// within the given `TreeStore`.
